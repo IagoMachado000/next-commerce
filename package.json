@@ -3,14 +3,15 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
-    "build": "next build --turbopack",
+    "dev": "prisma generate && next dev --turbopack",
+    "build": "prisma generate && prisma db push && next build --turbopack",
     "start": "next start",
     "lint": "eslint"
   },
   "dependencies": {
     "@clerk/localizations": "^3.25.1",
     "@clerk/nextjs": "^6.32.0",
+    "@prisma/client": "^6.16.2",
     "clsx": "^2.1.1",
     "next": "15.5.3",
     "react": "19.1.0",
@@ -24,6 +25,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "15.5.3",
+    "prisma": "^6.16.2",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
