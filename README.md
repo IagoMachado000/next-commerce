@@ -1,36 +1,70 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Projeto Next E-commerce
 
-## Getting Started
+## Estrutura de pastas padrão
 
-First, run the development server:
+`src/` - pasta raiz do código-fonte do projeto
+`src/app/` - contém rotas, layouts e páginas (mesma função da `app/`)
+`public/` - arquivos estáticos
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Estrutura de pasta custom
+
+`src/app/componentes` - arquivos de componentes
+
+## Arquivos 
+
+`src/app/layouts.tsx` - e o layout comum em todo a aplicação
+
+## Diferença na declaração de componentes
+
+A diferença entre os componentes é **muito sutil** e está **apenas na sintaxe de declaração do componente**. Vamos detalhar:
+
+### 1️⃣ Função tradicional
+
+```javascript
+import Link from "next/link";
+
+function Navbar() {
+  return (
+    <nav> ... </nav>
+  );
+}
+
+export default Navbar;
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+* Usa a **declaração clássica de função**: `function Navbar() { ... }`.
+* Funciona exatamente igual que uma arrow function no contexto de um componente React.
+* Pode ser **hoisted**, ou seja, você pode usar a função antes de declará-la no código.
+* Sintaxe mais “tradicional” do JavaScript.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 2️⃣ Arrow function
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```javascript
+import Link from "next/link";
 
-## Learn More
+const Navbar = () => {
+  return (
+    <nav> ... </nav>
+  )
+}
 
-To learn more about Next.js, take a look at the following resources:
+export default Navbar;
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+* Usa **arrow function** atribuída a uma constante: `const Navbar = () => { ... }`.
+* Não é hoisted: precisa ser declarada antes de ser usada.
+* É a sintaxe moderna mais comum para componentes funcionais hoje em dia.
+* Permite usar recursos de ES6, como funções inline menores, callbacks, etc.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### ⚡ Resumo das diferenças
 
-## Deploy on Vercel
+| Característica    | `function Navbar()`  | `const Navbar = () => {}` |
+| ----------------- | -------------------- | ------------------------- |
+| Sintaxe           | Tradicional          | Arrow function (moderna)  |
+| Hoisting          | Sim                  | Não                       |
+| Uso em React      | Igual funcionalmente | Igual funcionalmente      |
+| Estilo de escrita | Mais “clássico”      | Mais moderno e conciso    |
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+✅ **Importante:** Para React/Next.js moderno, **não há diferença prática** entre esses dois componentes. A escolha depende do estilo de código que você quer seguir.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
