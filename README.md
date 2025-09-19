@@ -9,6 +9,7 @@
 ## Estrutura de pasta custom
 
 `src/app/componentes` - arquivos de componentes
+`src/types` - tipagem dos dados
 
 ## Arquivos 
 
