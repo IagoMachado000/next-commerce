@@ -17,56 +17,97 @@
 
 ## Diferença na declaração de componentes
 
-A diferença entre os componentes é **muito sutil** e está **apenas na sintaxe de declaração do componente**. Vamos detalhar:
+A diferença entre a declaração dos componentes é **muito sutil** e está **apenas na sintaxe de declaração**:
 
-### 1️⃣ Função tradicional
+### 🔹 1. Função declarada + export separado
 
-```javascript
-import Link from "next/link";
-
+```tsx
 function Navbar() {
-  return (
-    <nav> ... </nav>
-  );
+  return <nav>...</nav>;
 }
 
 export default Navbar;
 ```
 
-* Usa a **declaração clássica de função**: `function Navbar() { ... }`.
-* Funciona exatamente igual que uma arrow function no contexto de um componente React.
-* Pode ser **hoisted**, ou seja, você pode usar a função antes de declará-la no código.
-* Sintaxe mais “tradicional” do JavaScript.
+✅ Características:
 
-### 2️⃣ Arrow function
+* **Função nomeada** → ajuda no stack trace (erros mostram o nome `Navbar`).
+* **Tem hoisting** → você pode chamar `Navbar()` mesmo antes da declaração.
+* Separação clara entre **definição** e **exportação**.
+* Com TypeScript, para tipar props você faz:
 
-```javascript
-import Link from "next/link";
+```tsx
+type Props = { title: string };
 
+function Navbar({ title }: Props) {
+  return <nav>{title}</nav>;
+}
+```
+
+### 🔹 2. Arrow function atribuída a constante
+
+```tsx
 const Navbar = () => {
-  return (
-    <nav> ... </nav>
-  )
-}
+  return <nav>...</nav>;
+};
 
 export default Navbar;
 ```
 
-* Usa **arrow function** atribuída a uma constante: `const Navbar = () => { ... }`.
-* Não é hoisted: precisa ser declarada antes de ser usada.
-* É a sintaxe moderna mais comum para componentes funcionais hoje em dia.
-* Permite usar recursos de ES6, como funções inline menores, callbacks, etc.
+✅ Características:
 
-### ⚡ Resumo das diferenças
+* **Arrow function** → não tem hoisting. Você só pode usar `Navbar` depois dessa linha.
+* Mais usada em **projetos modernos** porque combina bem com:
 
-| Característica    | `function Navbar()`  | `const Navbar = () => {}` |
-| ----------------- | -------------------- | ------------------------- |
-| Sintaxe           | Tradicional          | Arrow function (moderna)  |
-| Hoisting          | Sim                  | Não                       |
-| Uso em React      | Igual funcionalmente | Igual funcionalmente      |
-| Estilo de escrita | Mais “clássico”      | Mais moderno e conciso    |
+  * Hooks (`useState`, `useEffect`, etc.).
+  * Tipagem explícita (`const Comp: React.FC<Props> = ...`).
+* Também mantém o nome da função (`Navbar`) nos erros, porque está atribuída a uma variável.
 
-✅ **Importante:** Para React/Next.js moderno, **não há diferença prática** entre esses dois componentes. A escolha depende do estilo de código que você quer seguir.
+```tsx
+type Props = { title: string };
+
+const Navbar = ({ title }: Props) => {
+  return <nav>{title}</nav>;
+};
+```
+
+### 🔹 3. Função declarada com `export default`
+
+```tsx
+export default function Navbar() {
+  return <nav>...</nav>;
+}
+```
+
+✅ Características:
+
+* Mesma ideia da 1ª, mas já **exporta direto**.
+* Código mais **enxuto**, usado muito em exemplos oficiais do Next.js.
+* Continua sendo uma função nomeada → nos erros ainda aparece `Navbar`.
+* Com TypeScript, tipar props é idêntico:
+
+```tsx
+type Props = { title: string };
+
+export default function Navbar({ title }: Props) {
+  return <nav>{title}</nav>;
+}
+```
+
+### 📌 Comparação final
+
+| Forma                                 | Hoisting | Legibilidade          | Estilo comum em…                                     |
+| ------------------------------------- | -------- | --------------------- | ---------------------------------------------------- |
+| `function Navbar() {}` + export       | ✅ Sim    | Separação clara       | Projetos mais clássicos, libs                        |
+| `const Navbar = () => {}`             | ❌ Não    | Mais conciso, moderno | Projetos atuais, quando se usa hooks e props tipadas |
+| `export default function Navbar() {}` | ✅ Sim    | Mais enxuto           | Next.js docs, exemplos oficiais                      |
+
+👉 **Na prática:**
+
+* As **3 funcionam exatamente igual** em React.
+* A diferença é só de estilo e de como você organiza o projeto.
+* Se estiver em Next.js, a **3ª** é a mais comum nos exemplos da documentação.
+* Se quiser **tipagem explícita e controle total**, a **2ª** (arrow function) é a preferida em times grandes.
 
 ---
 
