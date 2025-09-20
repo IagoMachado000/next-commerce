@@ -202,3 +202,252 @@ import Image from 'next/image';
 
 // Sem essa configuração, o Next.js dará erro ou aviso.
 ```
+
+## `use cliente`
+
+No **Next.js (App Router)**, por padrão, todos os arquivos em `app/` são **Server Components**. Isso significa que:
+
+* Eles **rodam no servidor** antes de enviar o HTML para o navegador.
+* Não têm acesso a hooks do React que dependem do browser (`useState`, `useEffect`, etc.).
+* Podem acessar dados sensíveis (ex.: `process.env.STRIPE_SECRET_KEY`).
+
+### 🔑 O que faz o `"use client"`
+
+Se você coloca no topo do arquivo:
+
+```tsx
+"use client";
+```
+
+Você está dizendo para o Next.js:
+
+> “Esse componente deve ser renderizado no **cliente (browser)** e não apenas no servidor.”
+
+Assim ele vira um **Client Component**.
+
+### ✨ Diferenças práticas entre **Server Component** e **Client Component**
+
+| Característica                                  | Server Component                         | Client Component                               |
+| ----------------------------------------------- | ---------------------------------------- | ---------------------------------------------- |
+| Onde roda                                       | No servidor                              | No navegador                                   |
+| Pode usar `useState`, `useEffect`, `useContext` | ❌ Não                                    | ✅ Sim                                          |
+| Pode acessar variáveis secretas (`process.env`) | ✅ Sim                                    | ❌ Não                                          |
+| Tamanho do bundle enviado ao cliente            | Menor                                    | Maior                                          |
+| Exemplo típico                                  | Pegar dados no banco, renderizar produto | Botão de adicionar ao carrinho, interatividade |
+
+### 📌 Exemplos
+
+#### Server Component (padrão)
+
+```tsx
+// app/page.tsx (não precisa "use client")
+export default async function Page() {
+  const products = await getProducts(); // pode acessar banco, API privada
+  return <div>{products.map(p => <div>{p.name}</div>)}</div>;
+}
+```
+
+#### Client Component
+
+```tsx
+"use client";
+
+import { useState } from "react";
+
+export default function Counter() {
+  const [count, setCount] = useState(0); // só funciona com "use client"
+  return (
+    <button onClick={() => setCount(count + 1)}>
+      Cliquei {count} vezes
+    </button>
+  );
+}
+```
+
+✅ **Resumindo**:
+
+* Use **Server Components** sempre que possível (melhor performance, acesso a dados sensíveis).
+* Use **Client Components** (`"use client"`) apenas quando precisar de **interatividade no browser**.
+
+---
+
+## App Route
+
+### 📌 O que é o `page.tsx`?
+
+Dentro do **App Router (`app/`)**, cada pasta corresponde a uma **rota**.
+E o arquivo `page.tsx` é o **ponto de entrada principal dessa rota**.
+
+Exemplo:
+
+```
+src/app/products/page.tsx
+```
+
+➡️ Isso cria a rota:
+
+```
+http://localhost:3000/products
+```
+
+O conteúdo de `page.tsx` será renderizado quando você acessar `/products`.
+
+### 📂 O que pode ter dentro de `src/app/products/`
+
+Além de `page.tsx`, a pasta de uma rota pode conter vários arquivos especiais:
+
+| Arquivo                       | Função                                                                                                 |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------ |
+| **page.tsx**                  | Renderiza a página principal da rota (`/products`).                                                    |
+| **layout.tsx**                | Define a estrutura visual compartilhada entre sub-rotas (navbar, sidebar, footer, etc.).               |
+| **loading.tsx**               | Mostra um *loading state* enquanto o conteúdo da rota está sendo carregado (ideal para SSR/streaming). |
+| **error.tsx**                 | Renderiza um fallback em caso de erro nessa rota.                                                      |
+| **not-found.tsx**             | Mostra uma página de "404" específica para essa rota.                                                  |
+| **head.tsx** (opcional)       | Personaliza `<head>` (título, meta tags).                                                              |
+| **route.ts** ou **route.tsx** | Usado para criar **API Routes** dentro do App Router (ex.: `/products/api`).                           |
+
+### ⚙️ Como funciona o roteamento no App Router
+
+1. **Cada pasta dentro de `app/` vira uma rota.**
+
+   * `src/app/page.tsx` → `/`
+   * `src/app/products/page.tsx` → `/products`
+   * `src/app/products/[id]/page.tsx` → `/products/:id` (rota dinâmica)
+   * `src/app/dashboard/settings/page.tsx` → `/dashboard/settings`
+
+2. **Layouts são hierárquicos.**
+
+   * Se você tiver `src/app/layout.tsx`, ele é aplicado a **todas as rotas**.
+   * Se tiver `src/app/products/layout.tsx`, ele é aplicado só a `/products` e suas subrotas.
+
+3. **Carregamento e erros são isolados.**
+
+   * Se você definir `loading.tsx` em `/products`, só essa rota mostra o loading.
+   * O mesmo vale para `error.tsx`.
+
+### 🧩 Exemplo prático
+
+Estrutura:
+
+```
+src/app/
+ ├─ layout.tsx        // Layout global (header/footer do site inteiro)
+ ├─ page.tsx          // Página inicial "/"
+ ├─ products/
+ │   ├─ page.tsx      // Página "/products"
+ │   ├─ layout.tsx    // Layout só para a seção de produtos
+ │   ├─ loading.tsx   // Loader exclusivo de /products
+ │   ├─ error.tsx     // Tratamento de erro em /products
+ │   └─ [id]/
+ │       └─ page.tsx  // Página dinâmica "/products/:id"
+```
+
+👉 Quando o usuário acessa `/products/123`, o Next vai:
+
+1. Renderizar `src/app/layout.tsx` (layout global).
+2. Renderizar `src/app/products/layout.tsx` (layout da seção de produtos).
+3. Renderizar `src/app/products/[id]/page.tsx` (página específica do produto).
+
+✅ **Resumindo**:
+
+* `page.tsx` = página principal da rota.
+* Cada pasta em `app/` representa uma rota.
+* Você pode ter `layout.tsx`, `loading.tsx`, `error.tsx`, `not-found.tsx` etc. para controlar o comportamento da rota.
+* O roteamento é **file-based** (baseado na estrutura de pastas).
+
+---
+
+## Arquivos `.ts` e `.tsx`
+
+No **Next.js** (ou qualquer projeto React/TypeScript), a diferença entre **`.ts`** e **`.tsx`** é a seguinte:
+
+### 📌 Arquivos `.ts`
+
+* São arquivos **TypeScript puro** (sem JSX).
+* Usados para **lógica, utilitários, configs, tipos, hooks sem JSX**.
+* Exemplos típicos:
+
+  * `src/lib/db.ts` → conexão com banco
+  * `src/utils/formatPrice.ts` → funções helpers
+  * `src/types/Product.ts` → definição de tipos/interfaces
+  * `src/services/api.ts` → chamadas a API
+
+```ts
+// src/utils/formatPrice.ts
+export function formatPrice(value: number, currency = "USD") {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency,
+  }).format(value / 100);
+}
+```
+
+### 📌 Arquivos `.tsx`
+
+* São arquivos **TypeScript + JSX (TSX)**.
+* Usados para **componentes React**, **layouts** e **páginas** do Next.js.
+* Qualquer arquivo que renderize elementos JSX (`<div>`, `<button>`, etc.) precisa ser `.tsx`.
+* Exemplos típicos:
+
+  * `src/app/page.tsx` → página principal `/`
+  * `src/app/products/page.tsx` → rota `/products`
+  * `src/components/Navbar.tsx` → componente de navegação
+  * `src/app/layout.tsx` → layout de página
+
+```tsx
+// src/components/Button.tsx
+type ButtonProps = {
+  children: React.ReactNode;
+  onClick?: () => void;
+};
+
+export default function Button({ children, onClick }: ButtonProps) {
+  return (
+    <button
+      onClick={onClick}
+      className="rounded bg-blue-500 px-4 py-2 text-white"
+    >
+      {children}
+    </button>
+  );
+}
+```
+
+### 🚀 Regrinha prática no Next.js
+
+* **Se o arquivo tiver JSX → `.tsx`**
+  (componentes, páginas, layouts, providers, etc.)
+
+* **Se o arquivo não tiver JSX → `.ts`**
+  (funções helpers, serviços, hooks sem renderização, schemas, tipos, configs, etc.)
+
+👉 Exemplo na prática do Next.js:
+
+```
+src/
+ ├─ app/
+ │   ├─ layout.tsx      ✅ tem JSX → TSX
+ │   ├─ page.tsx        ✅ tem JSX → TSX
+ │   └─ products/
+ │       └─ page.tsx    ✅ tem JSX → TSX
+ │
+ ├─ components/
+ │   └─ Navbar.tsx      ✅ componente React → TSX
+ │
+ ├─ lib/
+ │   └─ stripe.ts       ✅ lógica do Stripe (sem JSX) → TS
+ │
+ ├─ types/
+ │   └─ product.ts      ✅ apenas tipos/interfaces → TS
+ │
+ └─ utils/
+     └─ formatPrice.ts  ✅ helper (sem JSX) → TS
+```
+
+⚡ **Resumindo**:
+
+* Use `.tsx` **sempre que for escrever um componente React ou página/layout no Next.js**.
+* Use `.ts` **para tudo que não renderiza JSX** (tipos, utilitários, lógica de backend, configs).
+
+---
+
