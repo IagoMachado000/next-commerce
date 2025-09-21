@@ -5,6 +5,7 @@ import clsx from "clsx";
 import Navbar from "./components/Navbar";
 import { ClerkProvider } from "@clerk/nextjs";
 import { ptBR } from "@clerk/localizations";
+import Hydrate from "./components/Hydrate";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -36,9 +37,10 @@ export default function RootLayout({
             "antialiased bg-slate-700"
           )}
         >
-          <Navbar />
-
-          <main className="h-screen p-16">{children}</main>
+          <Hydrate>
+            <Navbar />
+            <main className="h-screen p-16">{children}</main>
+          </Hydrate>
         </body>
       </html>
     </ClerkProvider>

@@ -492,3 +492,145 @@ src/
 
 ---
 
+## Hydration (hidratação)
+
+### 🌱 O que é “hidratação” no React (e Next.js)
+
+* No **SSR (Server-Side Rendering)**, o React gera o **HTML pronto no servidor** e envia pro navegador.
+* Quando esse HTML chega no cliente, o React precisa “ligar” os eventos, estados e hooks para esse HTML ficar interativo.
+* Esse processo de “ligar” o HTML estático ao React do cliente se chama **hidratação (hydration)**.
+
+👉 Pensa assim: o servidor manda uma estátua de gesso (HTML). O React do cliente pinta, dá movimento e ativa os botões (hidratação).
+
+### ⚡ O problema que seu componente resolve
+
+Às vezes, o React/Next renderiza uma coisa no **servidor** e outra no **cliente** → isso gera **hydration mismatch** (erro de inconsistência).
+Exemplo:
+
+* No servidor, `window` não existe.
+* No cliente, `window.innerWidth` retorna um número.
+  Se você renderiza isso direto, pode dar diferença entre o HTML do servidor e o render do cliente.
+
+### 🔹 O que esse componente faz
+
+O seu `Hydrate` basicamente **espera o componente montar no cliente** antes de renderizar os filhos (`children`):
+
+```tsx
+'use client';
+
+import { ReactNode, useState, useEffect } from 'react';
+
+export default function Hydrate({ children }: { children: ReactNode }) {
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  return isMounted ? <>{children}</> : <span>carregando...</span>;
+}
+```
+
+* Antes de montar → mostra só `"carregando..."`.
+* Depois que o React “hidrata” no cliente → libera o `children` normalmente.
+
+Isso garante que o que for renderizado dentro do `Hydrate` **só apareça no cliente**, nunca no servidor → evitando erros de hidratação.
+
+### ✅ Quando usar `Hydrate`
+
+* Quando você depende de APIs do **navegador** (`window`, `localStorage`, `matchMedia` etc).
+* Quando quer evitar **mismatch entre SSR e Client**.
+* Exemplo: carrinho de compras salvo no `localStorage` → você só consegue ler isso no cliente.
+
+👉 Resumindo:
+O seu componente `Hydrate` serve para **proteger contra erros de hidratação**, renderizando o conteúdo só depois que o React garante que está rodando no cliente.
+
+### Exemplo prático
+
+Vamos ver um exemplo prático com **tema claro/escuro** (dark mode) usando `localStorage`.
+
+#### 🚨 O problema sem `Hydrate`
+
+Imagine esse componente que lê o tema do `localStorage`:
+
+```tsx
+"use client";
+import { useState, useEffect } from "react";
+
+export default function ThemeToggle() {
+  const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
+
+  return (
+    <button onClick={() => {
+      const newTheme = theme === "light" ? "dark" : "light";
+      setTheme(newTheme);
+      localStorage.setItem("theme", newTheme);
+    }}>
+      {theme === "light" ? "🌞 Claro" : "🌙 Escuro"}
+    </button>
+  );
+}
+```
+
+👉 Isso vai **quebrar no SSR**, porque no servidor não existe `localStorage`.
+O Next.js tenta renderizar, mas dá erro.
+
+#### ✅ Solução com `Hydrate`
+
+Você envolve o componente no `Hydrate`. Assim, ele só renderiza **no cliente**, quando `localStorage` já existe.
+
+```tsx
+"use client";
+import { useState, useEffect } from "react";
+
+function ThemeToggle() {
+  const [theme, setTheme] = useState<"light" | "dark">("light");
+
+  useEffect(() => {
+    const saved = localStorage.getItem("theme") as "light" | "dark" | null;
+    if (saved) setTheme(saved);
+  }, []);
+
+  function toggleTheme() {
+    const newTheme = theme === "light" ? "dark" : "light";
+    setTheme(newTheme);
+    localStorage.setItem("theme", newTheme);
+  }
+
+  return (
+    <button onClick={toggleTheme}>
+      {theme === "light" ? "🌞 Claro" : "🌙 Escuro"}
+    </button>
+  );
+}
+
+export default ThemeToggle;
+```
+
+E no seu app, você usa assim:
+
+```tsx
+import Hydrate from "./Hydrate";
+import ThemeToggle from "./ThemeToggle";
+
+export default function Page() {
+  return (
+    <Hydrate>
+      <ThemeToggle />
+    </Hydrate>
+  );
+}
+```
+
+#### 🔎 O que aconteceu aqui
+
+* No SSR → o `Hydrate` mostra só `"carregando..."`.
+* No cliente → o `Hydrate` troca para `<ThemeToggle />`.
+* O `ThemeToggle` consegue ler/escrever no `localStorage` sem quebrar a hidratação.
+
+---
+
+👉 Esse mesmo padrão serve para **carrinho de compras**, **dados do usuário logado**, ou qualquer coisa que dependa de `localStorage`/`sessionStorage`/`window`.
+
+---
+
