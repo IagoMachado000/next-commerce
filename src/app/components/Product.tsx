@@ -11,9 +11,9 @@ type ProductProps = {
 
 const Product = ({ product, priority }: ProductProps) => {
   return (
-    <Link href={`/product/${product.id}`}>
-      <div className="flex flex-col shadow-lg h-96 bg-slate-800 p-5 text-gray-300">
-        <div className="relative max-h-72 flex-1">
+    <div className="flex flex-col shadow-lg h-96 bg-slate-800 p-5 text-gray-300">
+      <Link href={`/product/${product.id}`}>
+        <div className="relative h-65 flex-1">
           <ProductImage product={product} fill priority={priority} />
         </div>
 
@@ -22,10 +22,9 @@ const Product = ({ product, priority }: ProductProps) => {
 
           <p className="text-md text-teal-300">{formatPrice(product.price)}</p>
         </div>
-
-        <AddCart product={product} />
-      </div>
-    </Link>
+      </Link>
+      <AddCart product={product} />
+    </div>
   );
 };
 

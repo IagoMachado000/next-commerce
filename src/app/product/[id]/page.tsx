@@ -1,6 +1,7 @@
 import AddCart from '@/app/components/AddCart';
 import ProductImage from '@/app/components/ProductImage';
 import { formatPrice } from '@/lib/utils';
+import Link from 'next/link';
 import Stripe from 'stripe';
 
 type ProductPageProps = {
@@ -28,9 +29,8 @@ async function getProduct(id: string) {
   };
 }
 
-export default async function ProductPage({
-  params: { id },
-}: ProductPageProps) {
+export default async function ProductPage({ params }: ProductPageProps) {
+  const { id } = await params;
   const product = await getProduct(id);
 
   return (
@@ -46,7 +46,10 @@ export default async function ProductPage({
         <div className='pb-4'>
           <p className='text-sm text-gray-400'>{product.description}</p>
         </div>
-        <AddCart product={product} />
+        <div className='flex items-center gap-2'>
+          <AddCart product={product} />
+          <Link href={'/'} className='rounded-md bg-teal-800 text-white px-3.5 py-2.5 text-sm text-center cursor-pointer'>Voltar para a loja</Link>
+        </div>
       </div>
     </div>
   );

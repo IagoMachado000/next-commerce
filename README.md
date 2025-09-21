@@ -634,3 +634,74 @@ export default function Page() {
 
 ---
 
+## Server Action
+
+### 1️⃣ Contexto
+
+No **Next.js 13+** (com App Router e React Server Components), você tem duas formas de executar código:
+
+* **Client Components** → rodando no navegador. Pode usar hooks, eventos, etc.
+* **Server Components** → rodando no servidor. Pode acessar banco de dados, arquivos do servidor, APIs privadas etc. sem expor segredos ao cliente.
+
+Antes, se você quisesse que o usuário clicasse em um botão e salvasse algo no banco, precisava:
+
+1. Criar uma **API Route** (`/api/...`) → backend.
+2. Fazer um **fetch** do Client Component → API → servidor → banco.
+
+Ou seja, **uma ida e volta extra**.
+
+### 2️⃣ O que são **Server Actions**
+
+**Server Actions** permitem que você:
+
+* Escreva funções que **rodam direto no servidor**.
+* Chame essas funções **direto do Client Component**, sem criar endpoints API separados.
+* O Next.js cuida de serializar os argumentos, enviar pro servidor e atualizar o componente quando necessário.
+
+💡 Basicamente: é **função do servidor acionada pelo cliente**, mas sem precisar de fetch manual ou API route.
+
+### 3️⃣ Exemplo simples
+
+```tsx
+"use server"; // indica que essa função é uma Server Action
+
+import { db } from "@/lib/db";
+
+export async function addProduct(name: string) {
+  await db.product.create({ data: { name } });
+}
+```
+
+No seu Client Component:
+
+```tsx
+"use client";
+import { addProduct } from "./actions";
+
+export default function AddProductButton() {
+  return (
+    <button onClick={() => addProduct("Camisa Teste")}>
+      Adicionar Produto
+    </button>
+  );
+}
+```
+
+✅ Sem criar `/api/add-product`.
+✅ A função `addProduct` roda **no servidor**.
+✅ O Next cuida de passar os dados e retornar erros, se houver.
+
+### 4️⃣ Benefícios
+
+* Menos boilerplate: não precisa de API routes só pra cada ação.
+* Mais seguro: acesso a segredos (`db`, `env`) sem expor no cliente.
+* Melhor integração com React Server Components: atualizações automáticas de UI.
+
+### 5️⃣ Observações
+
+* Server Actions **não podem ser chamadas diretamente no navegador**, só via evento React (`onClick`, `onSubmit`).
+* Só funcionam com **App Router** (Next.js 13+).
+* É uma forma de **unir o melhor do SSR, RSC e Client Components**.
+
+---
+

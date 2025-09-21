@@ -14,10 +14,34 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User{
-  id Int @id @default(autoincrement())
-  externalId String @unique
-  attributes Json
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model User {
+  id               Int      @id @default(autoincrement())
+  externalId       String   @unique
+  attributes       Json
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  stripeCustomerId String?
+  orders           Order[]
+}
+
+model Order {
+  id              String    @id @default(cuid())
+  user            User      @relation(fields: [userId], references: [id])
+  userId          Int
+  amount          Float
+  currency        String
+  status          String
+  createdDate     DateTime  @default(now())
+  paymentIntentID String?   @unique
+  products        Product[]
+}
+
+model Product {
+  id          String  @id @default(cuid())
+  name        String
+  description String?
+  price       Float
+  image       String?
+  quantity    Float   @default(0)
+  orders      Order[]
 }
