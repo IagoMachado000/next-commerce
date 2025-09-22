@@ -31,7 +31,7 @@ type EmailAddressType = {
 
 async function handler(request: Request) {
   const payload = await request.json();
-  const headersList = headers();
+  const headersList = await headers();
   const heads = {
     'svix-id': headersList.get('svix-id'),
     'svix-timestamp': headersList.get('svix-timestamp'),
