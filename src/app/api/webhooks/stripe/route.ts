@@ -7,7 +7,8 @@ import Stripe from "stripe";
 
 async function handler(request: Request) {
   const body = await request.text();
-  const sig = headers().get("stripe-signature") || "";
+  const hdrs = await headers();
+  const sig = hdrs.get("stripe-signature") || "";
   
   if (!sig) {
     return new Response("No signature", { status: 400 });
